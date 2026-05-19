@@ -1,6 +1,6 @@
 # E-Bike
 
-Kleine MCF-Application zur Berechnung des Übersetzungsverhältnisses eines E-Bikes mit einem Kettenrad und 10 Ritzeln inkl. grafischer Darstellung.
+Kleine MCF-Anwendung zur Berechnung des Übersetzungsverhältnisses eines E-Bikes mit einem Kettenrad und 10 Ritzeln inkl. grafischer Darstellung.
 
 ## Start
 

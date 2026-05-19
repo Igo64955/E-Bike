@@ -107,7 +107,7 @@
       <div class="controls">
         <div>
           <label for="chainring">Kettenrad (Zähne)</label>
-          <input id="chainring" type="number" min="1" value="42" />
+          <input id="chainring" type="number" min="1" max="100" value="42" />
         </div>
         <div>
           <label for="sprockets">10 Ritzel (kommagetrennt)</label>
@@ -185,13 +185,14 @@
         const height = 320;
         const padding = 35;
         const barGap = 8;
+        const barOffset = 4;
         const topPadding = 20;
         const chartWidth = width - padding * 2;
         const chartHeight = height - padding * 2;
         const maxRatio = Math.max(...data.map((d) => d.ratio));
-        const createSvgElement = (tagName, attrsOrText = {}, maybeText) => {
-          const attrs = typeof attrsOrText === 'string' ? {} : attrsOrText || {};
-          const text = typeof attrsOrText === 'string' ? attrsOrText : maybeText;
+        const createSvgElement = (tagName, attributesOrContent = {}, textContent) => {
+          const attrs = typeof attributesOrContent === 'string' ? {} : attributesOrContent || {};
+          const text = typeof attributesOrContent === 'string' ? attributesOrContent : textContent;
           const element = document.createElementNS(svgNS, tagName);
           Object.entries(attrs).forEach(([key, value]) => {
             element.setAttribute(key, value);
@@ -231,7 +232,7 @@
 
         data.forEach((entry, index) => {
           const barWidth = chartWidth / data.length - barGap;
-          const x = padding + index * (chartWidth / data.length) + 4;
+          const x = padding + index * (chartWidth / data.length) + barOffset;
           const barHeight = (entry.ratio / maxRatio) * (chartHeight - topPadding);
           const y = height - padding - barHeight;
 

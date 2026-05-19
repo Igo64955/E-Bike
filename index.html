@@ -1,0 +1,297 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>E-Bike Übersetzungsverhältnis</title>
+    <style>
+      :root {
+        font-family: Arial, sans-serif;
+        color: #1f2937;
+      }
+
+      body {
+        margin: 0;
+        background: #f3f4f6;
+      }
+
+      main {
+        max-width: 900px;
+        margin: 2rem auto;
+        padding: 1.5rem;
+        background: #ffffff;
+        border-radius: 12px;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+      }
+
+      h1 {
+        margin-top: 0;
+      }
+
+      .controls {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1rem;
+        margin-bottom: 1rem;
+      }
+
+      label {
+        font-weight: 600;
+        display: block;
+        margin-bottom: 0.35rem;
+      }
+
+      input {
+        width: 100%;
+        box-sizing: border-box;
+        padding: 0.55rem;
+        border: 1px solid #d1d5db;
+        border-radius: 8px;
+        font-size: 1rem;
+      }
+
+      button {
+        margin-top: 0.8rem;
+        padding: 0.65rem 1rem;
+        border: none;
+        border-radius: 8px;
+        background: #2563eb;
+        color: white;
+        font-weight: 600;
+        cursor: pointer;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 1rem;
+      }
+
+      th,
+      td {
+        border-bottom: 1px solid #e5e7eb;
+        text-align: left;
+        padding: 0.55rem;
+      }
+
+      #chart {
+        width: 100%;
+        height: 320px;
+        margin-top: 1rem;
+      }
+
+      .hint,
+      .error {
+        margin-top: 0.5rem;
+      }
+
+      .hint {
+        color: #4b5563;
+      }
+
+      .error {
+        color: #b91c1c;
+        font-weight: 600;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>E-Bike Übersetzungsverhältnis</h1>
+      <p>
+        Berechne das Übersetzungsverhältnis für ein Kettenrad und 10 Ritzel. Das
+        Verhältnis wird als <strong>Kettenradzähne / Ritzelzähne</strong>
+        berechnet.
+      </p>
+
+      <div class="controls">
+        <div>
+          <label for="chainring">Kettenrad (Zähne)</label>
+          <input id="chainring" type="number" min="1" max="100" value="42" />
+        </div>
+        <div>
+          <label for="sprockets">10 Ritzel (kommagetrennt)</label>
+          <input
+            id="sprockets"
+            type="text"
+            placeholder="z.B. 11,13,15,17,19,21,24,28,32,36"
+            value="11,13,15,17,19,21,24,28,32,36"
+          />
+        </div>
+      </div>
+
+      <button id="calculate" type="button">Berechnen</button>
+      <div id="message" class="hint"></div>
+      <svg id="chart" viewBox="0 0 900 320" aria-label="Übersetzungsdiagramm" role="img"></svg>
+
+      <table aria-label="Tabelle mit Übersetzungsverhältnissen">
+        <thead>
+          <tr>
+            <th>Ritzel</th>
+            <th>Zähne</th>
+            <th>Übersetzung</th>
+          </tr>
+        </thead>
+        <tbody id="results"></tbody>
+      </table>
+    </main>
+
+    <script>
+      function parseSprockets(input) {
+        return input
+          .split(',')
+          .map((value) => Number(value.trim()))
+          .filter((value) => Number.isFinite(value) && value > 0);
+      }
+
+      function calculateRatios(chainring, sprockets) {
+        return sprockets.map((sprocket, index) => ({
+          gear: index + 1,
+          sprocket,
+          ratio: chainring / sprocket,
+        }));
+      }
+
+      function renderTable(data) {
+        const tbody = document.getElementById('results');
+        tbody.replaceChildren();
+
+        data.forEach((entry) => {
+          const row = document.createElement('tr');
+          const gearCell = document.createElement('td');
+          const sprocketCell = document.createElement('td');
+          const ratioCell = document.createElement('td');
+
+          gearCell.textContent = String(entry.gear);
+          sprocketCell.textContent = String(entry.sprocket);
+          ratioCell.textContent = entry.ratio.toFixed(2);
+
+          row.appendChild(gearCell);
+          row.appendChild(sprocketCell);
+          row.appendChild(ratioCell);
+          tbody.appendChild(row);
+        });
+      }
+
+      function renderChart(data) {
+        const svgNS = 'http://www.w3.org/2000/svg';
+        const svg = document.getElementById('chart');
+        if (data.length === 0) {
+          svg.replaceChildren();
+          return;
+        }
+
+        const width = 900;
+        const height = 320;
+        const padding = 35;
+        const barGap = 8;
+        const barOffset = 4;
+        const topPadding = 20;
+        const chartWidth = width - padding * 2;
+        const chartHeight = height - padding * 2;
+        const maxRatio = Math.max(...data.map((d) => d.ratio));
+        const createSvgElement = (tagName, attrs = {}) => {
+          const element = document.createElementNS(svgNS, tagName);
+          Object.entries(attrs).forEach(([key, value]) => {
+            element.setAttribute(key, value);
+          });
+          return element;
+        };
+        const createSvgTextElement = (tagName, text, attrs = {}) => {
+          const element = createSvgElement(tagName, attrs);
+          element.textContent = text;
+          return element;
+        };
+
+        svg.replaceChildren();
+
+        svg.appendChild(
+          createSvgTextElement('title', 'Übersetzungsverhältnisse pro Gang'),
+        );
+
+        svg.appendChild(
+          createSvgElement('line', {
+            x1: String(padding),
+            y1: String(height - padding),
+            x2: String(width - padding),
+            y2: String(height - padding),
+            stroke: '#6b7280',
+          }),
+        );
+        svg.appendChild(
+          createSvgElement('line', {
+            x1: String(padding),
+            y1: String(padding),
+            x2: String(padding),
+            y2: String(height - padding),
+            stroke: '#6b7280',
+          }),
+        );
+
+        data.forEach((entry, index) => {
+          const barWidth = chartWidth / data.length - barGap;
+          const x = padding + index * (chartWidth / data.length) + barOffset;
+          const barHeight = (entry.ratio / maxRatio) * (chartHeight - topPadding);
+          const y = height - padding - barHeight;
+
+          const bar = createSvgElement('rect', {
+            x: String(x),
+            y: String(y),
+            width: String(barWidth),
+            height: String(barHeight),
+            fill: '#2563eb',
+            rx: '4',
+          });
+          bar.appendChild(createSvgTextElement('title', `Gang ${entry.gear}: Übersetzung ${entry.ratio.toFixed(2)}`));
+          const gearLabel = createSvgElement('text', {
+            x: String(x + barWidth / 2),
+            y: String(height - 12),
+            'text-anchor': 'middle',
+            'font-size': '12',
+          });
+          gearLabel.textContent = String(entry.gear);
+          const ratioLabel = createSvgElement('text', {
+            x: String(x + barWidth / 2),
+            y: String(y - 6),
+            'text-anchor': 'middle',
+            'font-size': '11',
+          });
+          ratioLabel.textContent = entry.ratio.toFixed(2);
+
+          svg.appendChild(bar);
+          svg.appendChild(gearLabel);
+          svg.appendChild(ratioLabel);
+        });
+      }
+
+      function showMessage(text, isError) {
+        const message = document.getElementById('message');
+        message.className = isError ? 'error' : 'hint';
+        message.textContent = text;
+      }
+
+      function runCalculation() {
+        const chainringValue = Number(document.getElementById('chainring').value);
+        const sprockets = parseSprockets(document.getElementById('sprockets').value);
+
+        if (!Number.isFinite(chainringValue) || chainringValue <= 0) {
+          showMessage('Bitte eine gültige, positive Anzahl an Kettenradzähnen eingeben.', true);
+          return;
+        }
+
+        if (sprockets.length !== 10) {
+          showMessage('Bitte genau 10 gültige Ritzelwerte eingeben.', true);
+          return;
+        }
+
+        const data = calculateRatios(chainringValue, sprockets);
+        renderTable(data);
+        renderChart(data);
+        showMessage('Berechnung erfolgreich durchgeführt.', false);
+      }
+
+      document.getElementById('calculate').addEventListener('click', runCalculation);
+      runCalculation();
+    </script>
+  </body>
+</html>

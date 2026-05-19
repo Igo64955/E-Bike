@@ -6,7 +6,7 @@ Kleine MCF-Application zur Berechnung des Übersetzungsverhältnisses eines E-Bi
 
 Die Anwendung ist als statische Web-App umgesetzt.
 
-1. Datei `/home/runner/work/E-Bike/E-Bike/index.html` im Browser öffnen.
+1. Datei `index.html` aus dem Projektordner im Browser öffnen.
 2. Kettenrad-Zähne und 10 Ritzel-Zähne eingeben.
 3. Auf **Berechnen** klicken.
 

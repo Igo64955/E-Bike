@@ -107,7 +107,7 @@
       <div class="controls">
         <div>
           <label for="chainring">Kettenrad (Zähne)</label>
-          <input id="chainring" type="number" min="1" max="100" value="42" aria-label="Kettenrad in Zähnen" />
+          <input id="chainring" type="number" min="1" max="100" value="42" />
         </div>
         <div>
           <label for="sprockets">10 Ritzel (kommagetrennt)</label>
@@ -122,7 +122,7 @@
 
       <button id="calculate" type="button">Berechnen</button>
       <div id="message" class="hint"></div>
-      <svg id="chart" viewBox="0 0 900 320" aria-labelledby="chart-title" role="img"></svg>
+      <svg id="chart" viewBox="0 0 900 320" aria-label="Übersetzungsdiagramm" role="img"></svg>
 
       <table aria-label="Tabelle mit Übersetzungsverhältnissen">
         <thead>
@@ -206,9 +206,7 @@
         svg.replaceChildren();
 
         svg.appendChild(
-          createSvgTextElement('title', 'Übersetzungsverhältnisse pro Gang', {
-            id: 'chart-title',
-          }),
+          createSvgTextElement('title', 'Übersetzungsverhältnisse pro Gang'),
         );
 
         svg.appendChild(

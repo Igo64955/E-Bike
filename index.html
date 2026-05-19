@@ -114,6 +114,7 @@
           <input
             id="sprockets"
             type="text"
+            placeholder="z. B. 11,13,15,17,19,21,24,28,32,36"
             value="11,13,15,17,19,21,24,28,32,36"
           />
         </div>
@@ -121,7 +122,7 @@
 
       <button id="calculate" type="button">Berechnen</button>
       <div id="message" class="hint"></div>
-      <svg id="chart" viewBox="0 0 900 320" aria-label="Übersetzungsdiagramm"></svg>
+      <svg id="chart" viewBox="0 0 900 320" aria-labelledby="chart-title"></svg>
 
       <table aria-label="Tabelle mit Übersetzungsverhältnissen">
         <thead>
@@ -153,48 +154,105 @@
 
       function renderTable(data) {
         const tbody = document.getElementById('results');
-        tbody.innerHTML = '';
+        tbody.replaceChildren();
 
         data.forEach((entry) => {
           const row = document.createElement('tr');
-          row.innerHTML = `
-            <td>${entry.gear}</td>
-            <td>${entry.sprocket}</td>
-            <td>${entry.ratio.toFixed(2)}</td>
-          `;
+          const gearCell = document.createElement('td');
+          const sprocketCell = document.createElement('td');
+          const ratioCell = document.createElement('td');
+
+          gearCell.textContent = String(entry.gear);
+          sprocketCell.textContent = String(entry.sprocket);
+          ratioCell.textContent = entry.ratio.toFixed(2);
+
+          row.appendChild(gearCell);
+          row.appendChild(sprocketCell);
+          row.appendChild(ratioCell);
           tbody.appendChild(row);
         });
       }
 
       function renderChart(data) {
+        const svgNS = 'http://www.w3.org/2000/svg';
         const svg = document.getElementById('chart');
         const width = 900;
         const height = 320;
         const padding = 35;
+        const barGap = 8;
+        const topPadding = 20;
         const chartWidth = width - padding * 2;
         const chartHeight = height - padding * 2;
         const maxRatio = Math.max(...data.map((d) => d.ratio));
+        const createSvgElement = (tagName, attrs) => {
+          const element = document.createElementNS(svgNS, tagName);
+          Object.entries(attrs).forEach(([key, value]) => {
+            element.setAttribute(key, value);
+          });
+          return element;
+        };
 
-        let bars = '';
-        let labels = '';
+        svg.replaceChildren();
+
+        svg.appendChild(
+          createSvgElement('title', {
+            id: 'chart-title',
+          }),
+        ).textContent = 'Übersetzungsverhältnisse pro Gang';
+
+        svg.appendChild(
+          createSvgElement('line', {
+            x1: String(padding),
+            y1: String(height - padding),
+            x2: String(width - padding),
+            y2: String(height - padding),
+            stroke: '#6b7280',
+          }),
+        );
+        svg.appendChild(
+          createSvgElement('line', {
+            x1: String(padding),
+            y1: String(padding),
+            x2: String(padding),
+            y2: String(height - padding),
+            stroke: '#6b7280',
+          }),
+        );
 
         data.forEach((entry, index) => {
-          const barWidth = chartWidth / data.length - 8;
+          const barWidth = chartWidth / data.length - barGap;
           const x = padding + index * (chartWidth / data.length) + 4;
-          const barHeight = (entry.ratio / maxRatio) * (chartHeight - 20);
+          const barHeight = (entry.ratio / maxRatio) * (chartHeight - topPadding);
           const y = height - padding - barHeight;
 
-          bars += `<rect x="${x}" y="${y}" width="${barWidth}" height="${barHeight}" fill="#2563eb" rx="4" />`;
-          labels += `<text x="${x + barWidth / 2}" y="${height - 12}" text-anchor="middle" font-size="12">${entry.gear}</text>`;
-          labels += `<text x="${x + barWidth / 2}" y="${y - 6}" text-anchor="middle" font-size="11">${entry.ratio.toFixed(2)}</text>`;
-        });
+          const bar = createSvgElement('rect', {
+            x: String(x),
+            y: String(y),
+            width: String(barWidth),
+            height: String(barHeight),
+            fill: '#2563eb',
+            rx: '4',
+            'aria-label': `Gang ${entry.gear}: Übersetzung ${entry.ratio.toFixed(2)}`,
+          });
+          const gearLabel = createSvgElement('text', {
+            x: String(x + barWidth / 2),
+            y: String(height - 12),
+            'text-anchor': 'middle',
+            'font-size': '12',
+          });
+          gearLabel.textContent = String(entry.gear);
+          const ratioLabel = createSvgElement('text', {
+            x: String(x + barWidth / 2),
+            y: String(y - 6),
+            'text-anchor': 'middle',
+            'font-size': '11',
+          });
+          ratioLabel.textContent = entry.ratio.toFixed(2);
 
-        svg.innerHTML = `
-          <line x1="${padding}" y1="${height - padding}" x2="${width - padding}" y2="${height - padding}" stroke="#6b7280" />
-          <line x1="${padding}" y1="${padding}" x2="${padding}" y2="${height - padding}" stroke="#6b7280" />
-          ${bars}
-          ${labels}
-        `;
+          svg.appendChild(bar);
+          svg.appendChild(gearLabel);
+          svg.appendChild(ratioLabel);
+        });
       }
 
       function showMessage(text, isError) {

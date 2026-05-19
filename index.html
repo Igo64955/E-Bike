@@ -114,7 +114,7 @@
           <input
             id="sprockets"
             type="text"
-            placeholder="z. B. 11,13,15,17,19,21,24,28,32,36"
+            placeholder="z.B. 11,13,15,17,19,21,24,28,32,36"
             value="11,13,15,17,19,21,24,28,32,36"
           />
         </div>
@@ -232,8 +232,10 @@
             height: String(barHeight),
             fill: '#2563eb',
             rx: '4',
-            'aria-label': `Gang ${entry.gear}: Übersetzung ${entry.ratio.toFixed(2)}`,
           });
+          bar.appendChild(
+            createSvgElement('title', {}),
+          ).textContent = `Gang ${entry.gear}: Übersetzung ${entry.ratio.toFixed(2)}`;
           const gearLabel = createSvgElement('text', {
             x: String(x + barWidth / 2),
             y: String(height - 12),

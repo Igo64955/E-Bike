@@ -122,7 +122,7 @@
 
       <button id="calculate" type="button">Berechnen</button>
       <div id="message" class="hint"></div>
-      <svg id="chart" viewBox="0 0 900 320" aria-labelledby="chart-title"></svg>
+      <svg id="chart" viewBox="0 0 900 320" aria-labelledby="chart-title" role="img"></svg>
 
       <table aria-label="Tabelle mit Übersetzungsverhältnissen">
         <thead>
@@ -176,6 +176,11 @@
       function renderChart(data) {
         const svgNS = 'http://www.w3.org/2000/svg';
         const svg = document.getElementById('chart');
+        if (data.length === 0) {
+          svg.replaceChildren();
+          return;
+        }
+
         const width = 900;
         const height = 320;
         const padding = 35;
@@ -184,11 +189,14 @@
         const chartWidth = width - padding * 2;
         const chartHeight = height - padding * 2;
         const maxRatio = Math.max(...data.map((d) => d.ratio));
-        const createSvgElement = (tagName, attrs) => {
+        const createSvgElement = (tagName, attrs = {}, text) => {
           const element = document.createElementNS(svgNS, tagName);
           Object.entries(attrs).forEach(([key, value]) => {
             element.setAttribute(key, value);
           });
+          if (text) {
+            element.textContent = text;
+          }
           return element;
         };
 
@@ -197,8 +205,8 @@
         svg.appendChild(
           createSvgElement('title', {
             id: 'chart-title',
-          }),
-        ).textContent = 'Übersetzungsverhältnisse pro Gang';
+          }, 'Übersetzungsverhältnisse pro Gang'),
+        );
 
         svg.appendChild(
           createSvgElement('line', {
@@ -233,9 +241,7 @@
             fill: '#2563eb',
             rx: '4',
           });
-          bar.appendChild(
-            createSvgElement('title', {}),
-          ).textContent = `Gang ${entry.gear}: Übersetzung ${entry.ratio.toFixed(2)}`;
+          bar.appendChild(createSvgElement('title', undefined, `Gang ${entry.gear}: Übersetzung ${entry.ratio.toFixed(2)}`));
           const gearLabel = createSvgElement('text', {
             x: String(x + barWidth / 2),
             y: String(height - 12),

@@ -189,7 +189,9 @@
         const chartWidth = width - padding * 2;
         const chartHeight = height - padding * 2;
         const maxRatio = Math.max(...data.map((d) => d.ratio));
-        const createSvgElement = (tagName, attrs = {}, text) => {
+        const createSvgElement = (tagName, attrsOrText = {}, maybeText) => {
+          const attrs = typeof attrsOrText === 'string' ? {} : attrsOrText || {};
+          const text = typeof attrsOrText === 'string' ? attrsOrText : maybeText;
           const element = document.createElementNS(svgNS, tagName);
           Object.entries(attrs).forEach(([key, value]) => {
             element.setAttribute(key, value);
@@ -241,7 +243,7 @@
             fill: '#2563eb',
             rx: '4',
           });
-          bar.appendChild(createSvgElement('title', undefined, `Gang ${entry.gear}: Übersetzung ${entry.ratio.toFixed(2)}`));
+          bar.appendChild(createSvgElement('title', `Gang ${entry.gear}: Übersetzung ${entry.ratio.toFixed(2)}`));
           const gearLabel = createSvgElement('text', {
             x: String(x + barWidth / 2),
             y: String(height - 12),

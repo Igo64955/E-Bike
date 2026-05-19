@@ -190,25 +190,25 @@
         const chartWidth = width - padding * 2;
         const chartHeight = height - padding * 2;
         const maxRatio = Math.max(...data.map((d) => d.ratio));
-        const createSvgElement = (tagName, attributesOrContent = {}, textContent) => {
-          const attrs = typeof attributesOrContent === 'string' ? {} : attributesOrContent || {};
-          const text = typeof attributesOrContent === 'string' ? attributesOrContent : textContent;
+        const createSvgElement = (tagName, attrs = {}) => {
           const element = document.createElementNS(svgNS, tagName);
           Object.entries(attrs).forEach(([key, value]) => {
             element.setAttribute(key, value);
           });
-          if (text) {
-            element.textContent = text;
-          }
+          return element;
+        };
+        const createSvgTextElement = (tagName, text, attrs = {}) => {
+          const element = createSvgElement(tagName, attrs);
+          element.textContent = text;
           return element;
         };
 
         svg.replaceChildren();
 
         svg.appendChild(
-          createSvgElement('title', {
+          createSvgTextElement('title', 'Übersetzungsverhältnisse pro Gang', {
             id: 'chart-title',
-          }, 'Übersetzungsverhältnisse pro Gang'),
+          }),
         );
 
         svg.appendChild(
@@ -244,7 +244,7 @@
             fill: '#2563eb',
             rx: '4',
           });
-          bar.appendChild(createSvgElement('title', `Gang ${entry.gear}: Übersetzung ${entry.ratio.toFixed(2)}`));
+          bar.appendChild(createSvgTextElement('title', `Gang ${entry.gear}: Übersetzung ${entry.ratio.toFixed(2)}`));
           const gearLabel = createSvgElement('text', {
             x: String(x + barWidth / 2),
             y: String(height - 12),
